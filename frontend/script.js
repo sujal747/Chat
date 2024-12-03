@@ -5,33 +5,65 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messagesContainer = document.getElementById('messages');
 const statusContainer = document.getElementById('status');
-const typingIndicator = document.getElementById('typing-indicator');
-let typingTimeout;
-let currentUsername = `User${Math.floor(Math.random() * 1000)}`; // Generate random username
+let currentUsername = `User${Math.floor(Math.random() * 1000)}`;
+let replyToMessage = null;
 
-// Handle sending messages
+// Send message
 sendButton.addEventListener('click', () => {
   const message = messageInput.value;
   if (message.trim()) {
-    socket.emit('message', { user: currentUsername, text: message });
-    messageInput.value = ''; // Clear the input field
+    const data = { user: currentUsername, text: message, reply: replyToMessage };
+    socket.emit('message', data);
 
-    // Add your own message to the chat
-    const newMessage = document.createElement('div');
-    newMessage.classList.add('message', 'sent');
-    newMessage.innerHTML = `<strong>${currentUsername}: </strong>${message}`;
-    messagesContainer.appendChild(newMessage);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
+    addMessage(data, 'sent');
+    messageInput.value = ''; // Clear input
+    replyToMessage = null; // Clear reply
+    messageInput.placeholder = 'Type a message...'; // Reset placeholder
   }
 });
 
-// Listen for pair notifications
+// Add message to UI
+function addMessage(message, type) {
+  const messageWrapper = document.createElement('div');
+  messageWrapper.classList.add('message', type);
+
+  // Add replied message
+  if (message.reply) {
+    const repliedMessage = document.createElement('div');
+    repliedMessage.classList.add('replied-message');
+    repliedMessage.textContent = `"${message.reply.text}" - ${message.reply.user}`;
+    messageWrapper.appendChild(repliedMessage);
+  }
+
+  const messageText = document.createElement('div');
+  messageText.innerHTML = `<strong>${message.user}: </strong>${message.text}`;
+  messageWrapper.appendChild(messageText);
+
+  // Add reply icon for received messages
+  if (type === 'received') {
+    const replyIcon = document.createElement('div');
+    replyIcon.classList.add('reply-icon');
+    replyIcon.innerHTML = '↩'; // Black arrow icon
+    replyIcon.title = 'Reply to this message';
+    replyIcon.addEventListener('click', () => {
+      replyToMessage = message;
+      messageInput.placeholder = `Replying to: "${message.text}"`;
+      messageInput.focus();
+    });
+    messageWrapper.appendChild(replyIcon);
+  }
+
+  messagesContainer.appendChild(messageWrapper);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Handle pairing notifications
 socket.on('pair', (data) => {
   statusContainer.textContent = data.message;
   statusContainer.style.color = data.pair === 'red' ? 'red' : 'green';
 });
 
-// Listen for waiting status
+// Handle waiting status
 socket.on('waiting', (data) => {
   statusContainer.textContent = data.message;
   statusContainer.style.color = 'orange';
@@ -39,32 +71,22 @@ socket.on('waiting', (data) => {
 
 // Listen for incoming messages
 socket.on('message', (message) => {
-  const newMessage = document.createElement('div');
-  newMessage.classList.add('message', 'received');
-  newMessage.innerHTML = `<strong>${message.user}: </strong>${message.text}`;
-  messagesContainer.appendChild(newMessage);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
+  addMessage(message, 'received');
 });
 
-// Typing indicator functionality
-messageInput.addEventListener('input', () => {
-  socket.emit('typing', true);
-  clearTimeout(typingTimeout);
-  typingTimeout = setTimeout(() => socket.emit('typing', false), 2000);
-});
-
-socket.on('typing', (isTyping) => {
-  typingIndicator.style.display = isTyping ? 'block' : 'none';
-  typingIndicator.textContent = isTyping ? 'User is typing...' : '';
-});
-
-// Connection status message
+// Connection status
 socket.on('connect', () => {
-  statusContainer.textContent = 'You are connected!';
+  statusContainer.textContent = 'Connected to server.';
   statusContainer.style.color = 'green';
 });
 
 socket.on('disconnect', () => {
-  statusContainer.textContent = 'Connecting...';
-  statusContainer.style.color = 'orange';
+  statusContainer.textContent = 'Disconnected. Trying to reconnect...';
+  statusContainer.style.color = 'red';
+});
+// Handle Enter key press to send the message
+messageInput.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    sendButton.click(); // Trigger the send button click event
+  }
 });
