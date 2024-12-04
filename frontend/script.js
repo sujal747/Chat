@@ -5,6 +5,8 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const messagesContainer = document.getElementById('messages');
 const statusContainer = document.getElementById('status');
+const notificationSound = document.getElementById('notification-sound');
+
 let currentUsername = `User${Math.floor(Math.random() * 1000)}`;
 let replyToMessage = null;
 
@@ -72,8 +74,12 @@ socket.on('waiting', (data) => {
 // Listen for incoming messages
 socket.on('message', (message) => {
   addMessage(message, 'received');
+  
+  // Check if the tab is not active
+  if (document.hidden) {
+    notificationSound.play(); // Play notification sound
+  }
 });
-
 // Connection status
 socket.on('connect', () => {
   statusContainer.textContent = 'Connected to server.';
