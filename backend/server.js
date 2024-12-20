@@ -12,7 +12,7 @@ const io = socketIo(server);
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Hugging Face API setup
-const huggingFaceAPI = 'https://api-inference.huggingface.co/models/microsoft/GODEL-v1_1-large-seq2seq';
+const huggingFaceAPI = 'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill';
 const hfAPIKey = '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';  // Replace with your Hugging Face API key
 
 // AI Bot Configuration
