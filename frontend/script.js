@@ -168,3 +168,8 @@ class ChatApplication {
 document.addEventListener('DOMContentLoaded', () => {
   new ChatApplication();
 });
+
+// Next-button
+document.getElementById('next-button').addEventListener('click', function () {
+  location.reload();
+});
