@@ -17,6 +17,8 @@
   --gradient-blue-end: #007aff;
   --gradient-green-start: #4caf50;
   --gradient-green-end: #6fd37d;
+  --gradient-red-start: #c73232;
+  --gradient-red-end: #b43d3d;
 }
 
 /* Body and Background Styles */
@@ -173,6 +175,21 @@ body::before {
 
 #send-button:hover {
   background: linear-gradient(135deg, #3d9140, #5bbf6d);
+}
+
+#next-button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--gradient-red-start), var(--gradient-red-end));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#next-button:hover {
+  background: linear-gradient(135deg, #bd4848, #d15252);
 }
 
 /* Scrollbar Styles */
